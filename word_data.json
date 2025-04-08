@@ -1,0 +1,94 @@
+{
+  "name": "LexiRoot Arena by Pan Chei-way",
+  "chineseName": "词根竞技场",
+  "allWords": [
+    {
+      "word": "port",
+      "formation": "搬运",
+      "parts": [
+        {
+          "text": "port",
+          "type": "root",
+          "meaning": "搬运"
+        }
+      ]
+    },
+    {
+      "word": "pre-",
+      "formation": "在...之前",
+      "parts": [
+        {
+          "text": "pre-",
+          "type": "root",
+          "meaning": "在...之前"
+        }
+      ]
+    },
+    {
+      "word": "-able",
+      "formation": "能够...",
+      "parts": [
+        {
+          "text": "-able",
+          "type": "root",
+          "meaning": "能够..."
+        }
+      ]
+    },
+    {
+      "word": "re-",
+      "formation": "再次",
+      "parts": [
+        {
+          "text": "re-",
+          "type": "root",
+          "meaning": "再次"
+        }
+      ]
+    },
+    {
+      "word": "trans-",
+      "formation": "穿过",
+      "parts": [
+        {
+          "text": "trans-",
+          "type": "root",
+          "meaning": "穿过"
+        }
+      ]
+    },
+    {
+      "word": "-tion",
+      "formation": "名词后缀",
+      "parts": [
+        {
+          "text": "-tion",
+          "type": "root",
+          "meaning": "名词后缀"
+        }
+      ]
+    },
+    {
+      "word": "spec",
+      "formation": "看",
+      "parts": [
+        {
+          "text": "spec",
+          "type": "root",
+          "meaning": "看"
+        }
+      ]
+    },
+    {
+      "word": "form",
+      "formation": "形状",
+      "parts": [
+        {
+          "text": "form",
+          "type": "root",
+          "meaning": "形状"
+        }
+      ]
+    }
+  ]
+}

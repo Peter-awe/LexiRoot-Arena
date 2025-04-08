@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雅思高频词源连连看</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            position: relative;
+            width: 1000px;
+            height: 700px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .signature {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 7px;
+            color: black;
+        }
+        .card {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .card.prefix {
+            background-color: #e74c3c;
+        }
+        .card.root {
+            background-color: #3498db;
+        }
+        .card.suffix {
+            background-color: #2ecc71;
+        }
+        .card.meaning {
+            background-color: #f39c12;
+        }
+        .card.completed {
+            background-color: #9b59b6;
+            opacity: 0.8;
+        }
+        .controls {
+            text-align: center;
+            margin: -3px 0 7px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #1a252f;
+        }
+        .stats {
+            text-align: center;
+            margin-bottom: 3px;
+            font-size: 18px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 24px;
+            margin: 3px 0;
+            min-height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>雅思高频词源连连看&nbsp;&nbsp;<span style="font-family: 'Dancing Script', cursive; font-size: 0.66em; color: black;">by Pan Chei-way</span></h1>
+    
+    <div class="stats">
+        得分: <span id="score">0</span> | 
+        剩余单词: <span id="remaining">0</span>
+    </div>
+    
+    <div class="word-display" id="currentWord"></div>
+    
+    <div class="controls">
+        <button id="startBtn">开始游戏</button>
+        <button id="checkBtn">检查答案</button>
+        <button id="resetBtn">重新开始</button>
+    </div>
+    
+    <div style="display: flex; gap: 20px; justify-content: center;">
+        <div class="game-container" id="gameBoard">
+            <!-- 卡片将通过JS动态生成 -->
+        </div>
+        
+        <div id="correctAnswers" style="width: 300px; background: white; border-radius: 10px; 
+            padding: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; max-height: 700px;">
+            <h3 style="margin-top: 0; color: #2c3e50;">已匹配的单词</h3>
+            <div id="answersList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 从词根词缀游戏.md中提取的单词数据
+        const allWords = [
+            // 第1类考点词
+            {
+                word: "resemble",
+                meaning: "相似",
+                parts: [
+                    {text: "re-", type: "prefix", meaning: "再次"},
+                    {text: "semble", type: "root", meaning: "模仿"}
+                ]
+            },
+            {
+                word: "recognize",
+                meaning: "认出",
+                parts: [
+                    {text: "re-", type: "prefix", meaning: "再次"},
+                    {text: "cogn", type: "root", meaning: "知道"},
+                    {text: "-ize", type: "suffix", meaning: "使..."}
+                ]
+            },
+            // 第2类考点词
+            {
+                word: "diversity",
+                meaning: "多样性",
+                parts: [
+                    {text: "di-", type: "prefix", meaning: "分开"},
+                    {text: "vers", type: "root", meaning: "转动"},
+                    {text: "-ity", type: "suffix", meaning: "名词后缀"}
+                ]
+            },
+            {
+                word: "detect",
+                meaning: "发现",
+                parts: [
+                    {text: "de-", type: "prefix", meaning: "去掉"},
+                    {text: "tect", type: "root", meaning: "覆盖"}
+                ]
+            },
+            // 第3类考点词
+            {
+                word: "accumulate",
+                meaning: "积累",
+                parts: [
+                    {text: "ac-", type: "prefix", meaning: "增加"},
+                    {text: "cumul", type: "root", meaning: "堆积"},
+                    {text: "-ate", type: "suffix", meaning: "动词后缀"}
+                ]
+            },
+            {
+                word: "adversity",
+                meaning: "逆境",
+                parts: [
+                    {text: "ad-", type: "prefix", meaning: "对着"},
+                    {text: "vers", type: "root", meaning: "转动"},
+                    {text: "-ity", type: "suffix", meaning: "名词后缀"}
+                ]
+            },
+            // 更多单词...
+            {
+                word: "aggression",
+                meaning: "侵略",
+                parts: [
+                    {text: "ag-", type: "prefix", meaning: "对着"},
+                    {text: "gress", type: "root", meaning: "行走"},
+                    {text: "-ion", type: "suffix", meaning: "名词后缀"}
+                ]
+            },
+            {
+                word: "altitude",
+                meaning: "高度",
+                parts: [
+                    {text: "alt", type: "root", meaning: "高的"},
+                    {text: "-itude", type: "suffix", meaning: "名词后缀"}
+                ]
+            },
+            {
+                word: "approve",
+                meaning: "批准",
+                parts: [
+                    {text: "ap-", type: "prefix", meaning: "表示赞同"},
+                    {text: "prov", type: "root", meaning: "测试"}
+                ]
+            },
+            {
+                word: "artificial",
+                meaning: "人造的",
+                parts: [
+                    {text: "art", type: "root", meaning: "技艺"},
+                    {text: "fic", type: "root", meaning: "做"},
+                    {text: "-ial", type: "suffix", meaning: "形容词后缀"}
+                ]
+            },
+            {
+                word: "beneficial",
+                meaning: "有益的",
+                parts: [
+                    {text: "bene", type: "prefix", meaning: "好"},
+                    {text: "fic", type: "root", meaning: "做"},
+                    {text: "-ial", type: "suffix", meaning: "形容词后缀"}
+                ]
+            },
+            {
+                word: "chronic",
+                meaning: "慢性的",
+                parts: [
+                    {text: "chron", type: "root", meaning: "时间"},
+                    {text: "-ic", type: "suffix", meaning: "形容词后缀"}
+                ]
+            },
+            {
+                word: "cognitive",
+                meaning: "认知的",
+                parts: [
+                    {text: "cogn", type: "root", meaning: "知道"},
+                    {text: "-itive", type: "suffix", meaning: "形容词后缀"}
+                ]
+            },
+            {
+                word: "compensate",
+                meaning: "补偿",
+                parts: [
+                    {text: "com-", type: "prefix", meaning: "一起"},
+                    {text: "pens", type: "root", meaning: "称重"},
+                    {text: "-ate", type: "suffix", meaning: "动词后缀"}
+                ]
+            },
+            {
+                word: "controversial",
+                meaning: "有争议的",
+                parts: [
+                    {text: "contra-", type: "prefix", meaning: "相反"},
+                    {text: "vers", type: "root", meaning: "转动"},
+                    {text: "-ial", type: "suffix", meaning: "形容词后缀"}
+                ]
+            }
+        ];
+
+        // 随机选择10个单词作为当前游戏数据
+        function getRandomWords() {
+            const shuffled = [...allWords].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 5);
+        }
+
+        let gameData = getRandomWords();
+
+        // 游戏状态
+        let cards = [];
+        let selectedCards = [];
+        let currentCombination = [];
+        let score = 0;
+        let totalWords = 0;
+        let gameStarted = false;
+        
+        const gameBoard = document.getElementById('gameBoard');
+        const startBtn = document.getElementById('startBtn');
+        const checkBtn = document.getElementById('checkBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const scoreDisplay = document.getElementById('score');
+        const remainingDisplay = document.getElementById('remaining');
+        const currentWordDisplay = document.getElementById('currentWord');
+
+        // 初始化游戏
+        function initGame() {
+            // 清空游戏板
+            gameBoard.innerHTML = '';
+            cards = [];
+            selectedCards = [];
+            currentCombination = [];
+            score = 0;
+            
+            // 清空右侧答案列表
+            document.getElementById('answersList').innerHTML = '';
+            
+            // 每次重新开始随机选择10个单词
+            gameData = getRandomWords();
+            
+            // 创建所有词素卡片
+            gameData.forEach(wordData => {
+                wordData.parts.forEach(part => {
+                    createCard(part.text, part.type, part.meaning);
+                });
+                // 创建含义卡片
+                createCard(wordData.meaning, 'meaning', wordData.word);
+            });
+            
+            // 随机布局卡片
+            layoutCards();
+            
+            // 更新统计信息
+            totalWords = gameData.length;
+            updateStats();
+            
+            gameStarted = true;
+        }
+
+        // 创建卡片
+        function createCard(content, type, matchContent) {
+            const card = document.createElement('div');
+            card.className = `card ${type}`;
+            card.textContent = content;
+            card.dataset.content = content;
+            card.dataset.type = type;
+            card.dataset.match = matchContent;
+            
+            card.addEventListener('click', () => handleCardClick(card));
+            gameBoard.appendChild(card);
+            
+            cards.push({
+                element: card,
+                content: content,
+                type: type,
+                match: matchContent,
+                completed: false
+            });
+        }
+
+        // 布局卡片
+        function layoutCards() {
+            const boardWidth = gameBoard.offsetWidth;
+            const boardHeight = gameBoard.offsetHeight;
+            const cardWidth = 120;
+            const cardHeight = 60;
+            const padding = 30;
+            
+            // 打乱卡片顺序
+            const shuffledCards = [...cards].sort(() => Math.random() - 0.5);
+            
+            // 随机布局但确保不重叠
+            const placedCards = [];
+            shuffledCards.forEach(card => {
+                let attempts = 0;
+                let placed = false;
+                
+                while (!placed && attempts < 100) {
+                    attempts++;
+                    
+                    // 随机位置
+                    const left = padding + Math.random() * (boardWidth - 2*padding - cardWidth);
+                    const top = padding + Math.random() * (boardHeight - 2*padding - cardHeight);
+                    
+                    // 检查是否与其他卡片重叠
+                    const overlapping = placedCards.some(placedCard => {
+                        return !(
+                            left + cardWidth < placedCard.left || 
+                            left > placedCard.left + placedCard.width ||
+                            top + cardHeight < placedCard.top ||
+                            top > placedCard.top + placedCard.height
+                        );
+                    });
+                    
+                    if (!overlapping) {
+                        card.element.style.left = `${left}px`;
+                        card.element.style.top = `${top}px`;
+                        placedCards.push({
+                            left: left,
+                            top: top,
+                            width: cardWidth,
+                            height: cardHeight
+                        });
+                        placed = true;
+                    }
+                }
+                
+                if (!placed) {
+                    // 如果无法放置，放在随机位置
+                    const left = padding + Math.random() * (boardWidth - 2*padding - cardWidth);
+                    const top = padding + Math.random() * (boardHeight - 2*padding - cardHeight);
+                    card.element.style.left = `${left}px`;
+                    card.element.style.top = `${top}px`;
+                }
+            });
+        }
+
+        // 处理卡片点击
+        function handleCardClick(cardObj) {
+            if (!gameStarted) return;
+            
+            // 找到对应的卡片对象
+            const card = cards.find(c => c.element === cardObj);
+            if (!card || card.completed) return;
+            
+            // 如果卡片未被选中，则选中它
+            if (!selectedCards.includes(card)) {
+                selectedCards.push(card);
+                cardObj.style.border = '3px solid black';
+                cardObj.style.boxShadow = 'none';
+            } else {
+                // 如果已选中，则取消选择
+                selectedCards = selectedCards.filter(c => c !== card);
+                cardObj.style.border = '';
+                cardObj.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            }
+            
+            // 更新当前组合显示
+            updateCurrentWordDisplay();
+        }
+
+        // 更新当前组合显示
+        function updateCurrentWordDisplay() {
+            currentWordDisplay.textContent = selectedCards
+                .sort((a, b) => {
+                    // 按前缀->词根->后缀排序
+                    const order = {prefix: 0, root: 1, suffix: 2};
+                    return order[a.type] - order[b.type];
+                })
+                .map(card => card.content)
+                .join('');
+        }
+
+        // 检查组合是否有效
+        function checkCombination() {
+            if (!gameStarted || selectedCards.length === 0) return;
+            
+            // 按正确顺序排序
+            const sortedCards = selectedCards.sort((a, b) => {
+                const order = {prefix: 0, root: 1, suffix: 2};
+                return order[a.type] - order[b.type];
+            });
+            
+            // 检查是否匹配任何单词
+            const matchedWord = gameData.find(wordData => {
+                // 检查是否选择了完整单词的所有部分+含义
+                if (sortedCards.length !== wordData.parts.length + 1) return false;
+                
+                // 检查所有词素部分是否匹配
+                const partsMatch = wordData.parts.every((part, index) => {
+                    return part.text === sortedCards[index].content && 
+                           part.type === sortedCards[index].type;
+                });
+                
+                // 检查最后一个卡片是否是含义卡片且匹配
+                const meaningMatch = sortedCards[sortedCards.length-1].type === 'meaning' &&
+                                    sortedCards[sortedCards.length-1].match === wordData.word;
+                
+                return partsMatch && meaningMatch;
+            });
+            
+            if (matchedWord) {
+                // 播放正确音效
+                playCorrectSound();
+                
+                // 标记卡片为已完成并移动到边缘
+                selectedCards.forEach(card => {
+                    card.completed = true;
+                    card.element.classList.add('completed');
+                    card.element.style.border = '';
+                    moveToCompletedArea(card);
+                });
+                
+                // 更新分数
+                score += 20;
+                updateStats();
+                
+                // 添加正确答案到右侧列表
+                addCorrectAnswer(matchedWord.word, matchedWord.meaning);
+                
+                // 检查游戏是否完成
+                if (checkGameComplete()) {
+                    setTimeout(() => {
+                        alert(`恭喜！你完成了所有单词！\n得分: ${score}`);
+                    }, 500);
+                }
+            } else {
+                // 显示错误
+                selectedCards.forEach(card => {
+                    card.element.style.boxShadow = '0 0 0 3px #e74c3c';
+                    setTimeout(() => {
+                        if (!card.completed) {
+                            card.element.style.boxShadow = selectedCards.includes(card) 
+                                ? '0 0 0 3px #f1c40f' 
+                                : '0 2px 5px rgba(0,0,0,0.2)';
+                        }
+                    }, 500);
+                });
+                
+                // 扣分
+                score = Math.max(0, score - 5);
+                updateStats();
+            }
+            
+            // 清除选择
+            selectedCards = [];
+            updateCurrentWordDisplay();
+        }
+
+        // 播放正确音效
+        function playCorrectSound() {
+            // 简单的音效模拟
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // 移动完成卡片到边缘
+        function moveToCompletedArea(card) {
+            const boardWidth = gameBoard.offsetWidth;
+            const boardHeight = gameBoard.offsetHeight;
+            
+            let targetX, targetY;
+            if (card.type === 'prefix') {
+                targetX = 20;
+                targetY = 20;
+            } else if (card.type === 'root') {
+                targetX = 20;
+                targetY = boardHeight - 80;
+            } else if (card.type === 'suffix') {
+                targetX = boardWidth - 140;
+                targetY = boardHeight - 80;
+            } else { // meaning
+                targetX = boardWidth - 140;
+                targetY = 20;
+            }
+            
+            card.element.style.transition = 'all 0.5s ease-out';
+            card.element.style.left = `${targetX}px`;
+            card.element.style.top = `${targetY}px`;
+            card.element.style.zIndex = '100';
+        }
+
+        // 检查游戏是否完成
+        function checkGameComplete() {
+            return cards.every(card => card.completed);
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            scoreDisplay.textContent = score;
+            const completedWords = gameData.filter(wordData => 
+                wordData.parts.every(part => 
+                    cards.some(card => card.content === part.text && card.completed)
+                )
+            ).length;
+            remainingDisplay.textContent = totalWords - completedWords;
+        }
+
+        // 添加正确答案到右侧列表
+        function addCorrectAnswer(word, meaning) {
+            const answersList = document.getElementById('answersList');
+            const answerItem = document.createElement('div');
+            answerItem.style.marginBottom = '10px';
+            answerItem.style.padding = '10px';
+            answerItem.style.backgroundColor = '#f8f9fa';
+            answerItem.style.borderRadius = '5px';
+            answerItem.innerHTML = `
+                <div style="font-weight: bold; color: #2c3e50;">${word}</div>
+                <div style="color: #7f8c8d;">${meaning}</div>
+            `;
+            answersList.appendChild(answerItem);
+        }
+
+        // 事件监听
+        startBtn.addEventListener('click', initGame);
+        checkBtn.addEventListener('click', checkCombination);
+        resetBtn.addEventListener('click', initGame);
+    </script>
+</body>
+</html>
